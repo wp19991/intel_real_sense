@@ -28,6 +28,9 @@ depth_sensor = pipeline.get_active_profile().get_device().first_depth_sensor()
 # 禁用emitter
 depth_sensor.set_option(rs.option.emitter_enabled, 0)  # 将0设置为关闭emitter
 send_time_second = 0
+
+ViideoWrite = cv2.VideoWriter("VideoWriterExample.avi", cv2.VideoWriter_fourcc('I', '4', '2', '0'),
+                              30, (640, 480))
 try:
     while True:
         send_time_second += 1
@@ -46,11 +49,12 @@ try:
         # get_apriltag_list_data
         data = cv2_tools.get_apriltag_list_data(infrared_image)
         if len(data) > 0:
-            print(f'{datetime.datetime.now()} - have {len(data)} apriltags [{",".join([str(i["tag_id"]) for i in data])}]')
+            print(
+                f'{datetime.datetime.now()} - have {len(data)} apriltags [{",".join([str(i["tag_id"]) for i in data])}]')
         # print_apriltag_to_image
         cv2_tools.print_apriltag_to_image(infrared_image, data)
 
-        if len(data) > 0 and send_time_second % 30 == 0 and True:
+        if len(data) > 0 and send_time_second % 30 == 0 and False:
             result = client.publish('python/mqtt', str(data))
             # result: [0, 1]
             status = result[0]
@@ -61,6 +65,7 @@ try:
 
         # 显示图像
         cv2.imshow('Infrared Image', infrared_image)
+        ViideoWrite.write(infrared_image)
 
         # 检查按键，如果按下q，则退出循环
         if cv2.waitKey(1) & 0xFF == ord('q'):
